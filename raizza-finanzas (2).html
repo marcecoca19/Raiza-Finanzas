@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raizza — Control Financiero</title>
+<style>
+  :root {
+    --ink: #2b2420;
+    --paper: #f7f3ec;
+    --card: #ffffff;
+    --line: #ded4c3;
+    --terra: #a8452f;
+    --terra-dark: #7c331f;
+    --olive: #5c6b47;
+    --olive-dark: #445234;
+    --muted: #8a7f70;
+    --warn-bg: #fbe9e5;
+    --ok-bg: #eef1e6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--paper);
+    color: var(--ink);
+    padding-bottom: 60px;
+  }
+  header {
+    padding: 28px 20px 20px;
+    border-bottom: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 0.5px;
+  }
+  header .sub {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 14px 20px 0;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+  }
+  nav button {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    padding: 10px 16px;
+    border: 1px solid var(--line);
+    border-bottom: none;
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+  }
+  nav button.active {
+    background: var(--card);
+    color: var(--ink);
+    font-weight: bold;
+    border-color: var(--ink);
+  }
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 17px;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 640px) {
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  }
+  .stat {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .stat .label {
+    font-family: Arial, sans-serif;
+    font-size: 11.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .stat .value {
+    font-size: 26px;
+    margin-top: 4px;
+    font-weight: bold;
+  }
+  .stat .value.terra { color: var(--terra-dark); }
+  .stat .value.olive { color: var(--olive-dark); }
+  form.inline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 14px;
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-family: Arial, sans-serif;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  input, select {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  input[type="text"] { min-width: 180px; }
+  input[type="number"] { width: 120px; }
+  button.action {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    padding: 9px 16px;
+    border: none;
+    border-radius: 5px;
+    background: var(--terra);
+    color: white;
+    cursor: pointer;
+  }
+  button.action:hover { background: var(--terra-dark); }
+  button.ghost {
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-size: 11.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  td.num, th.num { text-align: right; }
+  .del {
+    color: var(--terra);
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    background: none;
+    border: none;
+  }
+  .empty {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 10px 0;
+  }
+  .banner {
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .banner.ok { background: var(--ok-bg); color: var(--olive-dark); }
+  .banner.warn { background: var(--warn-bg); color: var(--terra-dark); }
+  .footer-tools {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .note {
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .helptext {
+    font-family: Arial, sans-serif;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .edit-fijo-desc, .edit-fijo-monto {
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 6px 6px;
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    width: 100%;
+    border-radius: 4px;
+  }
+  .edit-fijo-monto { text-align: right; }
+  .edit-fijo-desc:hover, .edit-fijo-monto:hover {
+    border-color: var(--line);
+    background: var(--paper);
+  }
+  .edit-fijo-desc:focus, .edit-fijo-monto:focus {
+    outline: none;
+    border-color: var(--terra);
+    background: var(--paper);
+  }
+  .sync-status.saving { color: var(--muted); }
+  .sync-status.ok { color: var(--olive-dark); }
+  .sync-status.error { color: var(--terra-dark); font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Raizza — Control Financiero</h1>
+    <div class="sub">Ingresos, costos y punto de equilibrio</div>
+  </div>
+  <div class="sub" id="periodoActual"></div>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
+  <button class="tab-btn" onclick="showTab('ingresos')">Ingresos</button>
+  <button class="tab-btn" onclick="showTab('variables')">Costos variables</button>
+  <button class="tab-btn" onclick="showTab('fijos')">Costos fijos</button>
+  <button class="tab-btn" onclick="showTab('equilibrio')">Punto de equilibrio</button>
+</nav>
+
+<main>
+
+  <!-- RESUMEN -->
+  <div class="tab active" id="tab-resumen">
+    <div class="card">
+      <h2>Este mes</h2>
+      <div class="grid-3">
+        <div class="stat">
+          <div class="label">Ingresos del mes</div>
+          <div class="value olive" id="r-ingresos">USD 0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Costos variables del mes</div>
+          <div class="value" id="r-variables">USD 0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Costos fijos del mes</div>
+          <div class="value" id="r-fijos">USD 0</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Resultado</h2>
+      <div id="r-banner"></div>
+      <div class="grid-2">
+        <div class="stat">
+          <div class="label">Margen de contribución generado</div>
+          <div class="value olive" id="r-margen">USD 0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Resultado neto estimado del mes</div>
+          <div class="value" id="r-neto">USD 0</div>
+        </div>
+      </div>
+      <p class="helptext">Margen de contribución = Ingresos − Costos variables. Resultado neto = Margen de contribución − Costos fijos. Si el resultado neto es negativo, todavía no cubriste los fijos del mes.</p>
+    </div>
+  </div>
+
+  <!-- INGRESOS -->
+  <div class="tab" id="tab-ingresos">
+    <div class="card">
+      <h2>Cargar ingreso</h2>
+      <form class="inline" onsubmit="return addIngreso(event)">
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="ing-fecha" required>
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <input type="text" id="ing-desc" placeholder="Ej: Ventas semana 1, delivery, etc." required>
+        </div>
+        <div class="field">
+          <label>Monto (USD)</label>
+          <input type="number" id="ing-monto" step="0.01" min="0" required>
+        </div>
+        <button class="action" type="submit">Agregar</button>
+      </form>
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Descripción</th><th class="num">Monto</th><th></th></tr>
+        </thead>
+        <tbody id="ing-tabla"></tbody>
+      </table>
+      <div class="empty" id="ing-empty">Todavía no cargaste ingresos.</div>
+    </div>
+  </div>
+
+  <!-- COSTOS VARIABLES -->
+  <div class="tab" id="tab-variables">
+    <div class="card">
+      <h2>Cargar costo variable (mercadería, insumos)</h2>
+      <form class="inline" onsubmit="return addVariable(event)">
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="var-fecha" required>
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <input type="text" id="var-desc" placeholder="Ej: Compra verdulería, carnicería, bebidas" required>
+        </div>
+        <div class="field">
+          <label>Monto (USD)</label>
+          <input type="number" id="var-monto" step="0.01" min="0" required>
+        </div>
+        <button class="action" type="submit">Agregar</button>
+      </form>
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Descripción</th><th class="num">Monto</th><th></th></tr>
+        </thead>
+        <tbody id="var-tabla"></tbody>
+      </table>
+      <div class="empty" id="var-empty">Todavía no cargaste costos variables.</div>
+    </div>
+  </div>
+
+  <!-- COSTOS FIJOS -->
+  <div class="tab" id="tab-fijos">
+    <div class="card">
+      <h2>Costos fijos mensuales</h2>
+      <p class="helptext">Estos son los costos que hay que cubrir sí o sí cada mes, independientemente de cuánto se venda. Editá los montos y agregá o quitá conceptos según haga falta.</p>
+      <table>
+        <thead>
+          <tr><th>Concepto</th><th class="num">Monto mensual (USD)</th><th></th></tr>
+        </thead>
+        <tbody id="fijos-tabla"></tbody>
+      </table>
+      <form class="inline" onsubmit="return addFijo(event)">
+        <div class="field">
+          <label>Concepto</label>
+          <input type="text" id="fijo-desc" placeholder="Ej: Impuestos" required>
+        </div>
+        <div class="field">
+          <label>Monto (USD)</label>
+          <input type="number" id="fijo-monto" step="0.01" min="0" required>
+        </div>
+        <button class="action" type="submit">Agregar concepto</button>
+      </form>
+      <div class="stat" style="margin-top:14px; max-width:280px;">
+        <div class="label">Total costos fijos / mes</div>
+        <div class="value terra" id="fijos-total">USD 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUNTO DE EQUILIBRIO -->
+  <div class="tab" id="tab-equilibrio">
+    <div class="card">
+      <h2>Margen de contribución promedio</h2>
+      <p class="helptext">Es el % de cada venta que queda después de descontar el costo variable (insumos). Si no lo calculaste plato por plato todavía, usá una estimación (ej: food cost 30% → margen de contribución 70%).</p>
+      <form class="inline" onsubmit="return setMargen(event)">
+        <div class="field">
+          <label>Margen de contribución (%)</label>
+          <input type="number" id="margen-input" step="0.1" min="1" max="99" required>
+        </div>
+        <button class="action" type="submit">Guardar</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Punto de equilibrio</h2>
+      <div class="grid-3">
+        <div class="stat">
+          <div class="label">Costos fijos / mes</div>
+          <div class="value" id="pe-fijos">USD 0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Ventas necesarias / mes</div>
+          <div class="value terra" id="pe-ventas-mes">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Ventas necesarias / semana</div>
+          <div class="value terra" id="pe-ventas-semana">—</div>
+        </div>
+      </div>
+      <p class="helptext" id="pe-formula"></p>
+    </div>
+    <div class="card">
+      <h2>Cómo vas este mes</h2>
+      <div id="pe-progreso"></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="footer-tools">
+  <div class="note" id="sync-status" style="margin-right:auto; align-self:center;">Conectando…</div>
+  <button class="ghost" onclick="exportarDatos()">Exportar copia (JSON)</button>
+  <button class="ghost" onclick="document.getElementById('importFile').click()">Importar y reemplazar</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarDatos(event)">
+</div>
+
+<script>
+var idCounter = 1;
+function nextId() { return idCounter++; }
+
+var data = {
+  ingresos: [],
+  variables: [],
+  fijos: [
+    { id: nextId(), desc: "Alquiler", monto: 3250 },
+    { id: nextId(), desc: "Empleados", monto: 4500 },
+    { id: nextId(), desc: "Servicios", monto: 1000 },
+    { id: nextId(), desc: "Contador", monto: 500 }
+  ],
+  margenContribucion: 70
+};
+
+var datosSinExportar = false;
+function marcarCambio() { datosSinExportar = true; }
+
+var FIREBASE_URL = 'https://raiza-e2275-default-rtdb.firebaseio.com/raizza';
+var ultimoTsLocal = 0;
+var guardadoOk = true;
+
+function marcarEstado(texto, tipo) {
+  var el = document.getElementById('sync-status');
+  if (!el) return;
+  el.textContent = texto;
+  el.className = 'sync-status ' + (tipo || '');
+}
+
+function recalcularIdCounter(obj) {
+  var maxId = 0;
+  var all = (obj.ingresos || []).concat(obj.variables || [], obj.fijos || []);
+  for (var i = 0; i < all.length; i++) {
+    if (!all[i].id) all[i].id = nextId();
+    if (all[i].id > maxId) maxId = all[i].id;
+  }
+  idCounter = maxId + 1;
+}
+
+function guardarEnFirebase() {
+  data._ts = Date.now();
+  ultimoTsLocal = data._ts;
+  guardadoOk = false;
+  marcarEstado('Guardando…', 'saving');
+  fetch(FIREBASE_URL + '.json', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function(res) {
+    if (!res.ok) throw new Error('save failed');
+    guardadoOk = true;
+    marcarEstado('Guardado ✓ — sincronizado con tus socios', 'ok');
+  }).catch(function() {
+    marcarEstado('No se pudo guardar — revisá tu conexión y volvé a intentar el cambio', 'error');
+  });
+}
+
+function cargarDeFirebase(esPoll) {
+  fetch(FIREBASE_URL + '.json').then(function(res) {
+    return res.json();
+  }).then(function(remoto) {
+    if (!remoto) {
+      if (!esPoll) { renderAll(); guardarEnFirebase(); }
+      return;
+    }
+    if (esPoll && remoto._ts && remoto._ts <= ultimoTsLocal) return;
+    recalcularIdCounter(remoto);
+    data = remoto;
+    ultimoTsLocal = remoto._ts || Date.now();
+    renderAll();
+    marcarEstado(esPoll ? 'Actualizado — alguien más cargó datos' : 'Sincronizado ✓', 'ok');
+  }).catch(function() {
+    marcarEstado('Sin conexión con el servidor — mostrando la última versión local', 'error');
+    if (!esPoll) renderAll();
+  });
+}
+
+window.onbeforeunload = function(e) {
+  if (!guardadoOk) {
+    var msg = 'Un cambio todavía no se terminó de guardar en el servidor. Si cerrás ahora, se puede perder.';
+    e.returnValue = msg;
+    return msg;
+  }
+};
+
+function showTab(name) {
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  var btns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  event.target.classList.add('active');
+  renderAll();
+}
+
+function fmt(n) {
+  return 'USD ' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function currentMonthKey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function isThisMonth(fecha) {
+  return fecha && fecha.indexOf(currentMonthKey()) === 0;
+}
+
+function addIngreso(e) {
+  e.preventDefault();
+  var fecha = document.getElementById('ing-fecha').value;
+  var desc = document.getElementById('ing-desc').value;
+  var monto = parseFloat(document.getElementById('ing-monto').value);
+  data.ingresos.push({ id: nextId(), fecha: fecha, desc: desc, monto: monto });
+  document.getElementById('ing-desc').value = '';
+  document.getElementById('ing-monto').value = '';
+  renderAll();
+  guardarEnFirebase();
+  return false;
+}
+
+function delIngreso(id) {
+  if (!confirm('¿Quitar este ingreso? No se puede deshacer.')) return;
+  data.ingresos = data.ingresos.filter(function(r) { return r.id !== id; });
+  renderAll();
+  guardarEnFirebase();
+}
+
+function addVariable(e) {
+  e.preventDefault();
+  var fecha = document.getElementById('var-fecha').value;
+  var desc = document.getElementById('var-desc').value;
+  var monto = parseFloat(document.getElementById('var-monto').value);
+  data.variables.push({ id: nextId(), fecha: fecha, desc: desc, monto: monto });
+  document.getElementById('var-desc').value = '';
+  document.getElementById('var-monto').value = '';
+  renderAll();
+  guardarEnFirebase();
+  return false;
+}
+
+function delVariable(id) {
+  if (!confirm('¿Quitar este costo variable? No se puede deshacer.')) return;
+  data.variables = data.variables.filter(function(r) { return r.id !== id; });
+  renderAll();
+  guardarEnFirebase();
+}
+
+function addFijo(e) {
+  e.preventDefault();
+  var desc = document.getElementById('fijo-desc').value;
+  var monto = parseFloat(document.getElementById('fijo-monto').value);
+  data.fijos.push({ id: nextId(), desc: desc, monto: monto });
+  document.getElementById('fijo-desc').value = '';
+  document.getElementById('fijo-monto').value = '';
+  renderAll();
+  guardarEnFirebase();
+  return false;
+}
+
+function delFijo(id) {
+  if (!confirm('¿Quitar este costo fijo? No se puede deshacer.')) return;
+  data.fijos = data.fijos.filter(function(r) { return r.id !== id; });
+  renderAll();
+  guardarEnFirebase();
+}
+
+function setMargen(e) {
+  e.preventDefault();
+  data.margenContribucion = parseFloat(document.getElementById('margen-input').value);
+  renderAll();
+  guardarEnFirebase();
+  return false;
+}
+
+function totalFijos() {
+  var t = 0;
+  for (var i = 0; i < data.fijos.length; i++) t += Number(data.fijos[i].monto);
+  return t;
+}
+
+function totalIngresosMes() {
+  var t = 0;
+  for (var i = 0; i < data.ingresos.length; i++) {
+    if (isThisMonth(data.ingresos[i].fecha)) t += Number(data.ingresos[i].monto);
+  }
+  return t;
+}
+
+function totalVariablesMes() {
+  var t = 0;
+  for (var i = 0; i < data.variables.length; i++) {
+    if (isThisMonth(data.variables[i].fecha)) t += Number(data.variables[i].monto);
+  }
+  return t;
+}
+
+function renderIngresos() {
+  var tbody = document.getElementById('ing-tabla');
+  tbody.innerHTML = '';
+  var ordenado = data.ingresos.slice().sort(function(a, b) { return b.fecha.localeCompare(a.fecha); });
+  for (var i = 0; i < ordenado.length; i++) {
+    var row = document.createElement('tr');
+    row.innerHTML = '<td>' + ordenado[i].fecha + '</td><td>' + ordenado[i].desc + '</td><td class="num">' + fmt(ordenado[i].monto) + '</td><td><button class="del" onclick="delIngreso(' + ordenado[i].id + ')">quitar</button></td>';
+    tbody.appendChild(row);
+  }
+  document.getElementById('ing-empty').style.display = data.ingresos.length ? 'none' : 'block';
+}
+
+function renderVariables() {
+  var tbody = document.getElementById('var-tabla');
+  tbody.innerHTML = '';
+  var ordenado = data.variables.slice().sort(function(a, b) { return b.fecha.localeCompare(a.fecha); });
+  for (var i = 0; i < ordenado.length; i++) {
+    var row = document.createElement('tr');
+    row.innerHTML = '<td>' + ordenado[i].fecha + '</td><td>' + ordenado[i].desc + '</td><td class="num">' + fmt(ordenado[i].monto) + '</td><td><button class="del" onclick="delVariable(' + ordenado[i].id + ')">quitar</button></td>';
+    tbody.appendChild(row);
+  }
+  document.getElementById('var-empty').style.display = data.variables.length ? 'none' : 'block';
+}
+
+function renderFijos() {
+  var tbody = document.getElementById('fijos-tabla');
+  tbody.innerHTML = '';
+  for (var i = 0; i < data.fijos.length; i++) {
+    var row = document.createElement('tr');
+    row.innerHTML = '<td><input type="text" class="edit-fijo-desc" value="' + data.fijos[i].desc + '" onchange="editFijoDesc(' + data.fijos[i].id + ', this.value)"></td>' +
+      '<td class="num"><input type="number" class="edit-fijo-monto" step="0.01" min="0" value="' + data.fijos[i].monto + '" onchange="editFijoMonto(' + data.fijos[i].id + ', this.value)"></td>' +
+      '<td><button class="del" onclick="delFijo(' + data.fijos[i].id + ')">quitar</button></td>';
+    tbody.appendChild(row);
+  }
+  document.getElementById('fijos-total').textContent = fmt(totalFijos());
+}
+
+function findFijo(id) {
+  for (var i = 0; i < data.fijos.length; i++) {
+    if (data.fijos[i].id === id) return data.fijos[i];
+  }
+  return null;
+}
+
+function editFijoDesc(id, value) {
+  var f = findFijo(id);
+  if (f) f.desc = value;
+  renderResumen();
+  guardarEnFirebase();
+}
+
+function editFijoMonto(id, value) {
+  var f = findFijo(id);
+  if (f) f.monto = parseFloat(value) || 0;
+  renderFijos();
+  renderEquilibrio();
+  renderResumen();
+  guardarEnFirebase();
+}
+
+function renderEquilibrio() {
+  document.getElementById('margen-input').value = data.margenContribucion;
+  var fijos = totalFijos();
+  document.getElementById('pe-fijos').textContent = fmt(fijos);
+  var margenPct = data.margenContribucion / 100;
+  if (margenPct > 0) {
+    var ventasMes = fijos / margenPct;
+    var ventasSemana = ventasMes / 4.33;
+    document.getElementById('pe-ventas-mes').textContent = fmt(ventasMes);
+    document.getElementById('pe-ventas-semana').textContent = fmt(ventasSemana);
+    document.getElementById('pe-formula').textContent = 'Cálculo: ' + fmt(fijos) + ' ÷ ' + data.margenContribucion + '% = ' + fmt(ventasMes) + ' en ventas mensuales para empatar (cubrir fijos, ganancia cero).';
+
+    var ingresosMes = totalIngresosMes();
+    var pct = ventasMes > 0 ? (ingresosMes / ventasMes) * 100 : 0;
+    var restante = ventasMes - ingresosMes;
+    var progHtml = '<div class="grid-2">';
+    progHtml += '<div class="stat"><div class="label">Ingresos cargados este mes</div><div class="value olive">' + fmt(ingresosMes) + '</div></div>';
+    if (restante > 0) {
+      progHtml += '<div class="stat"><div class="label">Falta para cubrir el mes</div><div class="value terra">' + fmt(restante) + '</div></div>';
+    } else {
+      progHtml += '<div class="stat"><div class="label">Superávit del mes</div><div class="value olive">' + fmt(-restante) + '</div></div>';
+    }
+    progHtml += '</div>';
+    progHtml += '<p class="helptext">Llevás cubierto el ' + pct.toFixed(1) + '% del punto de equilibrio mensual.</p>';
+    document.getElementById('pe-progreso').innerHTML = progHtml;
+  } else {
+    document.getElementById('pe-ventas-mes').textContent = '—';
+    document.getElementById('pe-ventas-semana').textContent = '—';
+    document.getElementById('pe-formula').textContent = 'Ingresá un margen de contribución mayor a 0% para calcular.';
+    document.getElementById('pe-progreso').innerHTML = '';
+  }
+}
+
+function renderResumen() {
+  var ingresos = totalIngresosMes();
+  var variables = totalVariablesMes();
+  var fijos = totalFijos();
+  var margenContrib = ingresos - variables;
+  var neto = margenContrib - fijos;
+
+  document.getElementById('r-ingresos').textContent = fmt(ingresos);
+  document.getElementById('r-variables').textContent = fmt(variables);
+  document.getElementById('r-fijos').textContent = fmt(fijos);
+  document.getElementById('r-margen').textContent = fmt(margenContrib);
+
+  var netoEl = document.getElementById('r-neto');
+  netoEl.textContent = fmt(neto);
+  netoEl.className = 'value ' + (neto >= 0 ? 'olive' : 'terra');
+
+  var banner = document.getElementById('r-banner');
+  if (neto >= 0) {
+    banner.className = 'banner ok';
+    banner.textContent = 'Este mes ya cubriste los costos fijos. Lo que sigue es ganancia.';
+  } else {
+    banner.className = 'banner warn';
+    banner.textContent = 'Todavía falta ' + fmt(-neto) + ' para cubrir los costos fijos de este mes.';
+  }
+}
+
+function renderAll() {
+  marcarCambio();
+  renderIngresos();
+  renderVariables();
+  renderFijos();
+  renderEquilibrio();
+  renderResumen();
+  var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var d = new Date();
+  document.getElementById('periodoActual').textContent = meses[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function exportarDatos() {
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'raizza-finanzas-' + currentMonthKey() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  datosSinExportar = false;
+}
+
+function importarDatos(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (data.ingresos.length || data.variables.length) {
+    var ok = confirm('Importar va a REEMPLAZAR todo lo que tenés cargado ahora (' + data.ingresos.length + ' ingresos, ' + data.variables.length + ' costos variables), y esto se va a guardar para todos los que usan el sistema. Si no lo exportaste antes, se pierde. ¿Continuar?');
+    if (!ok) { e.target.value = ''; return; }
+  }
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      var imported = JSON.parse(evt.target.result);
+      if (!imported || typeof imported !== 'object' || !Array.isArray(imported.ingresos) || !Array.isArray(imported.variables) || !Array.isArray(imported.fijos)) {
+        alert('El archivo no tiene el formato esperado. No se importó nada.');
+        return;
+      }
+      recalcularIdCounter(imported);
+      data = imported;
+      datosSinExportar = false;
+      renderAll();
+      guardarEnFirebase();
+      alert('Datos importados y sincronizados correctamente.');
+    } catch (err) {
+      alert('El archivo no tiene un formato válido. No se importó nada — tus datos actuales siguen intactos.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+cargarDeFirebase(false);
+setInterval(function() { cargarDeFirebase(true); }, 20000);
+</script>
+
+</body>
+</html>
